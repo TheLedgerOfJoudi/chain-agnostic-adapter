@@ -1,0 +1,29 @@
+{
+  "name": "chain-agnostic-adapter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheLedgerOfJoudi/chain-agnostic-adapter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheLedgerOfJoudi/chain-agnostic-adapter/issues"
+  },
+  "homepage": "https://github.com/TheLedgerOfJoudi/chain-agnostic-adapter#readme",
+  "dependencies": {
+    "@solana/wallet-adapter-base": "^0.9.5",
+    "@solana/wallet-adapter-react": "^0.15.4",
+    "@solana/wallet-adapter-react-ui": "^0.9.6",
+    "@solana/wallet-adapter-wallets": "^0.15.5",
+    "ethers": "^5.6.4",
+    "solana-web3": "^1.0.3",
+    "wagmi": "^0.2.26"
+  }
+}
