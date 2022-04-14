@@ -2,22 +2,23 @@
   "name": "chain-agnostic-adapter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "author": "questbook",
+  "keywords": ["react", "components", "web3"],
+  "private": false,
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [ "dist", "README.md" ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TheLedgerOfJoudi/chain-agnostic-adapter.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/TheLedgerOfJoudi/chain-agnostic-adapter/issues"
-  },
-  "homepage": "https://github.com/TheLedgerOfJoudi/chain-agnostic-adapter#readme",
   "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "web-vitals": "^1.0.1",
     "@solana/wallet-adapter-base": "^0.9.5",
     "@solana/wallet-adapter-react": "^0.15.4",
     "@solana/wallet-adapter-react-ui": "^0.9.6",
@@ -25,5 +26,37 @@
     "ethers": "^5.6.4",
     "solana-web3": "^1.0.3",
     "wagmi": "^0.2.26"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "test": "react-scripts test",
+    "build": "rm -rf dist && NODE_ENV=production babel src --out-dir dist --copy-files",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "@babel/cli": "^7.13.14",
+    "@babel/core": "^7.13.14",
+    "@babel/preset-env": "^7.13.12"
   }
 }
