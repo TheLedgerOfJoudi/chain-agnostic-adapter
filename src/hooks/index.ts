@@ -10,3 +10,5 @@ export {
 } from './contracts'
 
 export { useProvider } from './providers'
+
+export { useCacheBuster, useLocalStorage } from './utils'
