@@ -1,5 +1,8 @@
 
-import { Connector as wagmiConnector } from 'wagmi'
-import { Wallet as solanaWallet } from '@solana/wallet-adapter-react';
+import { Connector as WagmiConnector } from 'wagmi'
+import { BaseMessageSignerWalletAdapter as SolanaWalletAdapter } from '@solana/wallet-adapter-base'
 
-export type WalletConnector = wagmiConnector | solanaWallet | null
+
+export { Connector as WagmiConnector } from 'wagmi'
+export { BaseMessageSignerWalletAdapter as SolanaWalletAdapter }from '@solana/wallet-adapter-base'
+export type WalletConnector = WagmiConnector | SolanaWalletAdapter | null

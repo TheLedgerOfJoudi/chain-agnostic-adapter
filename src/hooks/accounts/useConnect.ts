@@ -1,10 +1,11 @@
 import * as React from 'react'
 
-import { useContext } from '../../context'
 import { WalletConnector } from '../../types'
 
-import { useWallet as useWalletSolana, Wallet as SolanaWallet } from '@solana/wallet-adapter-react';
-import { useConnect as useConnectWagmi, Connector as WagmiConnector } from 'wagmi';
+import { useWallet as useWalletSolana } from '@solana/wallet-adapter-react';
+import { useConnect as useConnectWagmi } from 'wagmi';
+
+import { useContext } from '../../context'
 
 type State = {
     connector?: WalletConnector
@@ -17,7 +18,7 @@ const initialState: State = {
 }
 
 export const useConnect = () => {
-    const [wagmiInfo, wagmiConnect] = useConnectWagmi();
+    const [wagmiInfo, _] = useConnectWagmi();
     const solanaInfo = useWalletSolana();
 
     const {
@@ -29,39 +30,28 @@ export const useConnect = () => {
     const [state, setState] = React.useState<State>(initialState)
 
     const connect = React.useCallback(
-        (walletConnector: WalletConnector) => {
-            solanaInfo.disconnect()
-            if (wagmiInfo.data.connected){
-                wagmiInfo.data.connector?.disconnect()
+        async (walletConnector: WalletConnector) => {
+            // Disconnecting both Wagmi and Solana
+            await solanaInfo.disconnect()
+            if (wagmiInfo.data.connected) {
+                await wagmiInfo.data.connector?.disconnect()
             }
-            if (walletConnector instanceof WagmiConnector){
-                wagmiConnect(walletConnector)
-            }
-            else if((walletConnector as SolanaWallet).adapter) {
-                walletConnector?.adapter.connect()
-            }
-        }, [globalState.connector, setGlobalState, setLastUsedWalletConnector]);
 
-    React.useEffect(() => {
-        setState((x) => ({
-            ...x,
-            connector: globalState.connector,
-            error: undefined,
-        }))
-    }, [wagmiInfo, wagmiConnect, solanaInfo])
+            // Connecting the wallet connector.
+            walletConnector?.connect()
+        }, [globalState, setGlobalState, setLastUsedWalletConnector]);
 
     return [
         {
             data: {
-                connected: !!globalState.data?.account,
-                connector: state.connector,
-                connectors: globalState.connectors,
+                connected: wagmiInfo.data.connected || solanaInfo.connected,
+                connector: wagmiInfo.data.connected ? wagmiInfo.data.connector : solanaInfo.wallet?.adapter,
+                connectors: globalState.walletConnectors,
             },
-            error: state.error,
-            loading: state.loading || globalState.connecting,
+            error: wagmiInfo.error,
+            loading: wagmiInfo.loading || solanaInfo.connecting || solanaInfo.disconnecting,
         },
         connect,
-    ] as const
+    ]
 }
-
 
