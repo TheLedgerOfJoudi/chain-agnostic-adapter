@@ -46,8 +46,8 @@ export type Props = {
      */
     wagmiProvider?: WagmiProviderProps['provider']
     /**
-   * Key for saving connector preference to browser
-   * @default 'multichain.walletconnector'
+    * Key for saving connector preference to browser
+    * @default 'multichain.walletconnector'
    */
     connectorStorageKey?: string
 }
