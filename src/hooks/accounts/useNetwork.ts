@@ -22,7 +22,7 @@ export const useNetwork = () => {
             error: wagmiError,
             loading: wagmiLoading || solanaInfo.connecting || solanaInfo.disconnecting,
         },
-        // TODO: add solana network switcher. 
+        // TODO: add solana network switcher (does such thing exist?). 
         switchNetworkWagmi
     ] as const
 };
