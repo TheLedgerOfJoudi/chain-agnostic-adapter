@@ -4,7 +4,7 @@ import { Connection as SolanaConnection } from '@solana/web3.js';
 import { useConnection as useConnectionSolana, useWallet as useWalletSolana } from "@solana/wallet-adapter-react";
 import React from "react";
 import { Address, ContractProvider, SolanaProgramProvider, SolanaProgramWallet } from "../../types";
-
+import { useContext } from '../../context'
 
 type State = {
     data?: {
@@ -17,7 +17,7 @@ type State = {
 
 const getConnectionProvider = async (wallet: SolanaProgramWallet, network: string) => {
     if (!wallet) return null
-
+    const context = useContext()
     // TODO: add advanced configuration for the connection/provider (or maybe add them as an argument?).
     const commitment = 'processed'
 

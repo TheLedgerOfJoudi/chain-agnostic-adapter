@@ -1,6 +1,6 @@
 import React from 'react'
 import { Contract } from './contract'
-import { useContract as useContractWagmi } from 'wagmi';
+import { useContext } from '../../context'
 import { ContractInterface, Address, ContractProvider } from '../../types';
 
 
@@ -26,6 +26,7 @@ export const useContract = <Contract = any>({
   contractInterface,
   provider,
 }: Config) => {
+  const context = useContext()
   return React.useMemo(() => {
     return getContract<Contract>({
       addressOrName,

@@ -2,12 +2,14 @@
 import { useNetwork as useNetworkWagmi } from "wagmi";
 import { useConnection as useConnectionSolana, useWallet as useWalletSolana } from "@solana/wallet-adapter-react";
 import { CHAIN_ID } from "../../constants";
-
+import { useContext } from '../../context'
 
 export const useNetwork = () => {
     const [{ data: wagmiNetworkData, error: wagmiError, loading: wagmiLoading }, switchNetworkWagmi] = useNetworkWagmi();
     const { connection: solanaConnection } = useConnectionSolana();
     const solanaInfo = useWalletSolana()
+
+    const context = useContext()
 
     return [
         {
