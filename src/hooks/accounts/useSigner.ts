@@ -67,7 +67,7 @@ export const useSigner = () => {
         // TODO: change this to get the Solana signer (if it exists). This 
         // was not implemented yet because it's not needed in grants frontend.
         return () => { }
-    }, [wamgiSignerState, solanaInfo])
+    }, [wamgiSignerState, getSignerWagmi, solanaInfo])
 
     return [state, getSigner] as const
 }
