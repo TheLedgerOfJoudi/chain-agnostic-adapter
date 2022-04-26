@@ -1,8 +1,7 @@
 export {
     Provider,
     useContext,
-    Context,
-    Connector
+    Context
 } from './context'
 
 export {
@@ -10,7 +9,5 @@ export {
     useConnect,
     useContract,
     useNetwork,
-    useProvider,
     useSigner
 } from './hooks';
-

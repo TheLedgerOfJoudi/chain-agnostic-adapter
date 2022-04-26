@@ -1,4 +1,3 @@
-export const Connector = null;
 
 import * as React from 'react'
 import {
