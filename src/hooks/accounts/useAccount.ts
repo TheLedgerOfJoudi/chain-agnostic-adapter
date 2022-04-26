@@ -1,48 +1,66 @@
-import * as React from 'react'
-
+import React from "react";
+import { Address, WalletConnector } from "../../types";
+import { useAccount as useAccountWagmi } from "wagmi";
+import { useWallet as useWalletSolana } from "@solana/wallet-adapter-react";
 import { useContext } from '../../context'
-import { useEnsAvatar, useEnsLookup } from '../ens'
+import { useConnect as useConnectWagmi } from 'wagmi';
 
 export type Config = {
-  /** Fetches ENS for connected account */
-  fetchEns?: boolean
+    // fetchEns is always set as false/null in grants/frontend. This is kept only to maintain
+    // the same signature of useAccount.
+    fetchEns?: boolean
+}
+
+type State = {
+    data?: {
+        address: Address,
+        connector: WalletConnector,
+    },
+    error?: Error,
+    loading: boolean,
 }
 
 export const useAccount = ({ fetchEns }: Config = {}) => {
-  const { state: globalState, setState } = useContext()
-  const address = globalState.data?.account
-  const [{ data: ens, error: ensError, loading: ensLoading }] = useEnsLookup({
-    address,
-    skip: !fetchEns,
-  })
-  const [{ data: avatar, error: avatarError, loading: avatarLoading }] =
-    useEnsAvatar({
-      addressOrName: ens,
-      skip: !fetchEns || !ens,
-    })
+    const [accountState, disconnectWagmi] = useAccountWagmi();
+    const [wagmiInfo, _] = useConnectWagmi();
+    const solanaInfo = useWalletSolana()
 
-  const disconnect = React.useCallback(() => {
-    setState((x) => {
-      x.connector?.disconnect()
-      return { cacheBuster: x.cacheBuster + 1 }
-    })
-  }, [setState])
+    const context = useContext()
 
-  const error = ensError || avatarError
-  const loading = ensLoading || avatarLoading
+    const state = React.useMemo(() => {
+        if (accountState.data?.address)
+            return {
+                data: {
+                    address: accountState.data.address,
+                    connector: accountState.data.connector
+                },
+                error: accountState.error,
+                loading: accountState.loading
+            } as State
 
-  return [
-    {
-      data: address
-        ? {
-            address,
-            connector: globalState.connector,
-            ens: ens ? { avatar, name: ens } : undefined,
-          }
-        : undefined,
-      error,
-      loading,
-    },
-    disconnect,
-  ] as const
-}
+        if (solanaInfo.connected && solanaInfo.wallet?.adapter)
+            return {
+                data: {
+                    address: solanaInfo.publicKey,
+                    connector: solanaInfo.wallet.adapter
+                },
+                loading: solanaInfo.connecting || solanaInfo.disconnecting
+            } as State
+
+         return {
+                data: undefined,
+                loading: false
+            } as State
+    }, [solanaInfo, accountState])
+
+    const disconnect = React.useCallback(async () => {
+        disconnectWagmi()
+        await solanaInfo.disconnect()
+    }, [solanaInfo.disconnect, disconnectWagmi])
+
+    return [
+        state,
+
+        disconnect
+    ] as const
+};

@@ -1,46 +1,39 @@
-import * as React from 'react'
-import { Contract } from 'ethers'
-import { Program } from '@project-serum/anchor';
-import { AbstractContractInterface } from '../../types';
-import { SignerOrProvider } from '../../types';
+import React from 'react'
+import { Contract } from './contract'
+import { useContext } from '../../context'
+import { ContractInterface, Address, ContractProvider } from '../../types';
+import { useContract as useContractWagmi } from 'wagmi';
+
 
 export type Config = {
-    /** Ex: Ethereum : 1, Solana : 2 ... */
-    env: number
-    /** Contract address or ID */
-    addressOrName: string
-    /** Contract interface*/
-    Interface: AbstractContractInterface
-    /** Signer or provider to attach to contract */
-    signerOrProvider?: SignerOrProvider
+  /** Contract address */
+  addressOrName: Address
+  /** Contract interface and Program's IDL */
+  contractInterface: ContractInterface
+
+  /** Signer or provider to attach to contract */
+  signerOrProvider?: ContractProvider
 }
 
-const getContract = ({
-    env,
-    addressOrName,
-    Interface,
-    signerOrProvider,
-}: Config) => {
-    if (env === 1) {
-        (new Contract(addressOrName, Interface.contractInterface, signerOrProvider.evmSignerOrProvider))
-    }
-    else if (env === 2) {
-        return new Program(Interface.idl, addressOrName, signerOrProvider.solanaProvider);
-    }
-}
+const getContract = <T = Contract>({
+  addressOrName,
+  contractInterface,
+  signerOrProvider,
+}: Config) =>
+  <T>(<unknown>new Contract(addressOrName, contractInterface, signerOrProvider))
 
-export const useContract = ({
-    env,
-    addressOrName,
-    Interface,
-    signerOrProvider,
+export const useContract = <Contract = any>({
+  addressOrName,
+  contractInterface,
+  signerOrProvider,
 }: Config) => {
-    return React.useMemo(() => {
-        return getContract({
-            env,
-            addressOrName,
-            Interface,
-            signerOrProvider,
-        })
-    }, [addressOrName, Interface, signerOrProvider])
+  const context = useContext()
+  return React.useMemo(() => {
+    
+    return getContract<Contract>({
+      addressOrName,
+      contractInterface,
+      signerOrProvider,
+    })
+  }, [addressOrName, contractInterface, signerOrProvider])
 }

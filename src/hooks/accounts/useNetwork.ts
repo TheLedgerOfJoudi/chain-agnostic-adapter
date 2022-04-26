@@ -1,75 +1,42 @@
 import * as React from 'react'
 import { Chain, SwitchChainError, allChains } from 'wagmi-core'
 
+import { useNetwork as useNetworkWagmi } from "wagmi";
+import { useConnection as useConnectionSolana, useWallet as useWalletSolana } from "@solana/wallet-adapter-react";
+import { CHAIN_ID } from "../../constants";
 import { useContext } from '../../context'
-import { useCancel } from '../utils'
 
 type State = {
-  error?: Error
-  loading?: boolean
-}
-
-const initialState: State = {
-  loading: false,
+    data: {
+        chain?: {
+            id: number
+        }
+    },
+    error: Error,
+    loading: boolean
 }
 
 export const useNetwork = () => {
-  const {
-    state: { connector, data },
-  } = useContext()
-  const [state, setState] = React.useState<State>(initialState)
+    const [{ data: wagmiNetworkData, error: wagmiError, loading: wagmiLoading }, switchNetworkWagmi] = useNetworkWagmi();
+    const { connection: solanaConnection } = useConnectionSolana();
+    const solanaInfo = useWalletSolana()
 
-  const chainId = data?.chain?.id
-  const unsupported = data?.chain?.unsupported
-  const activeChains = connector?.chains ?? []
-  const activeChain: Chain | undefined = [...activeChains, ...allChains].find(
-    (x) => x.id === chainId,
-  )
+    const context = useContext()
 
-  const cancelQuery = useCancel()
-  const switchNetwork = React.useCallback(
-    async (chainId: number) => {
-      let didCancel = false
-      cancelQuery(() => {
-        didCancel = true
-      })
-
-      if (!connector?.switchChain)
-        return { data: undefined, error: new SwitchChainError() }
-
-      try {
-        setState((x) => ({ ...x, error: undefined, loading: true }))
-        const chain = await connector.switchChain(chainId)
-        if (!didCancel) {
-          setState((x) => ({ ...x, loading: false }))
-        }
-        return { data: chain, error: undefined }
-      } catch (error_) {
-        const error = <Error>error_
-        if (!didCancel) {
-          setState((x) => ({ ...x, error, loading: false }))
-        }
-        return { data: undefined, error }
-      }
-    },
-    [cancelQuery, connector],
-  )
-
-  return [
-    {
-      data: {
-        chain: chainId
-          ? {
-              ...activeChain,
-              id: chainId,
-              unsupported,
-            }
-          : undefined,
-        chains: activeChains,
-      },
-      error: state.error,
-      loading: state.loading,
-    },
-    connector?.switchChain ? switchNetwork : undefined,
-  ] as const
-}
+    return [
+        {
+            data: {
+                chain: wagmiNetworkData.chain?.id ? {
+                    id: wagmiNetworkData.chain?.id
+                } : (solanaConnection?.rpcEndpoint ? {
+                    id: CHAIN_ID['SOLANA']
+                } : undefined),
+        },
+        // TODO: add solana network network error. 
+        error: wagmiError,
+        loading: wagmiLoading || solanaInfo.connecting || solanaInfo.disconnecting,
+        } as State,
+    // TODO: add solana network switcher (does such thing exist?). 
+    switchNetworkWagmi
+    ] as const
+};

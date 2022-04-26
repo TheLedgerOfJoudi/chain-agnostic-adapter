@@ -1,2 +1,0 @@
-
-export { useProvider } from './useProvider'

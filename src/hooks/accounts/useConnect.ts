@@ -1,100 +1,54 @@
 import * as React from 'react'
-import {
-  Connector,
-  ConnectorAlreadyConnectedError,
-  ConnectorData,
-} from 'wagmi-core'
 
+import { SolanaWalletAdapter, WalletConnector } from '../../types'
+
+import { useWallet as useWalletSolana } from '@solana/wallet-adapter-react';
+import { useConnect as useConnectWagmi } from 'wagmi';
+
+import { useAccount as useAccountWagmi } from "wagmi";
 import { useContext } from '../../context'
-import { useCancel } from '../utils'
 
 type State = {
-  connector?: Connector
-  error?: Error
-  loading: boolean
+    connector?: WalletConnector
+    error?: Error
+    loading: boolean
 }
 
 const initialState: State = {
-  loading: false,
+    loading: false,
 }
 
 export const useConnect = () => {
-  const {
-    state: globalState,
-    setState: setGlobalState,
-    setLastUsedConnector,
-  } = useContext()
-  const [state, setState] = React.useState<State>(initialState)
+    const [wagmiInfo] = useConnectWagmi();
+    const [accountState, disconnectWagmi] = useAccountWagmi();
+    const solanaInfo = useWalletSolana();
 
-  const cancelQuery = useCancel()
-  const connect = React.useCallback(
-    async (
-      connector: Connector,
-    ): Promise<{
-      data?: ConnectorData
-      error?: Error
-    }> => {
-      let didCancel = false
-      cancelQuery(() => {
-        didCancel = true
-      })
+    const [state, setState] = React.useState<State>(initialState)
 
-      try {
-        const activeConnector = globalState?.connector
-        if (connector === activeConnector)
-          throw new ConnectorAlreadyConnectedError()
+    const connect = React.useCallback(
+        async (walletConnector: WalletConnector) => {
+            // Disconnecting both Wagmi and Solana
 
-        setState((x) => ({
-          ...x,
-          loading: true,
-          connector,
-          error: undefined,
-        }))
-        const data = await connector.connect()
+            disconnectWagmi()
+            await solanaInfo.disconnect()
 
-        if (!didCancel) {
-          // Update connector globally only after successful connection
-          setGlobalState((x) => ({ ...x, connector, data }))
-          setLastUsedConnector(connector.name)
-          setState((x) => ({ ...x, loading: false }))
-        }
-        return { data, error: undefined }
-      } catch (error_) {
-        const error = <Error>error_
-        if (!didCancel) {
-          setState((x) => ({
-            ...x,
-            connector: undefined,
-            error,
-            loading: false,
-          }))
-        }
-        return { data: undefined, error }
-      }
-    },
-    [cancelQuery, globalState.connector, setGlobalState, setLastUsedConnector],
-  )
+            // Connecting the wallet connector.
+            walletConnector?.connect()
+        }, [solanaInfo, wagmiInfo.data]);
 
-  // Keep connector in sync with global connector
-  React.useEffect(() => {
-    setState((x) => ({
-      ...x,
-      connector: globalState.connector,
-      error: undefined,
-    }))
-    return cancelQuery
-  }, [cancelQuery, globalState.connector])
+    React.useEffect(() => {
+    }, [wagmiInfo.data.connected, solanaInfo.connected])
 
-  return [
-    {
-      data: {
-        connected: !!globalState.data?.account,
-        connector: state.connector,
-        connectors: globalState.connectors,
-      },
-      error: state.error,
-      loading: state.loading || globalState.connecting,
-    },
-    connect,
-  ] as const
+    return [
+        {
+            data: {
+                connected: wagmiInfo.data.connected || solanaInfo.connected,
+                connector: wagmiInfo.data.connected ? wagmiInfo.data.connector : (solanaInfo.connected ? solanaInfo.wallet?.adapter : undefined),
+                connectors: [...wagmiInfo.data.connectors, ...solanaInfo.wallets.map(x => x.adapter as SolanaWalletAdapter)] as WalletConnector[]
+            },
+            error: wagmiInfo.error,
+            loading: wagmiInfo.loading || solanaInfo.connecting || solanaInfo.disconnecting,
+        },
+        connect,
+    ] as const
 }
