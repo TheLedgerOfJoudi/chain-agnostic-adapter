@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { Signer } from 'ethers'
 
 import { useSigner as useSignerWagmi } from "wagmi"
 import { Connection as SolanaConnection } from '@solana/web3.js';
