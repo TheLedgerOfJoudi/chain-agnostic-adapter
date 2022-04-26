@@ -23,22 +23,23 @@ function defineReadOnly<T, K extends keyof T>(object: T, name: K, value: T[K]): 
 }
 
 export class Contract {
-    addressOrName: Address
+    address: Address
     contractInterface: ContractInterface
-    provider: ContractProvider
-    contract_: GenericContract | null
+    provider?: ContractProvider
+    contract_?: GenericContract
     functions: { [functionName: string]: ContractFunction }
 
     readonly [key: string]: ContractFunction<any> | any;
 
-    constructor(addressOrName: Address, contractInterface: ContractInterface, provider: ContractProvider) {
-        this.addressOrName = addressOrName
+    constructor(addressOrName: Address, contractInterface: ContractInterface, provider?: ContractProvider) {
+        this.address = addressOrName
         this.contractInterface = contractInterface
         this.provider = provider
         this.functions = {}
 
         // Wagmi EVM contracts.
         if (provider instanceof EvmContractProvider || provider instanceof EvmContractSigner) {
+            if (!contractInterface.abi) return
             this.contract_ = new EvmContract(addressOrName as string, contractInterface.abi, provider)
             if (!this.contract_) return
             Object(this.contract_.functions).keys.forEach((functionName: string) => {
@@ -52,6 +53,7 @@ export class Contract {
 
         // Solana programs.
         else if (provider instanceof SolanaProgramProvider) {
+            if (!contractInterface.idl) return
             this.contract_ = new SolanaProgram(contractInterface.idl, addressOrName, provider)
             Object(this.contract_.methods).keys.forEach((functionName: string) => {
                 if (this.contract_ instanceof SolanaProgram && this.contract_.hasOwnProperty(functionName)) {
@@ -74,7 +76,6 @@ export class Contract {
         }
         else {
             // Add other blockchain types.
-            this.contract_ = null
         }
     }
 }

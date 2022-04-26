@@ -15,7 +15,7 @@ type State = {
     loading?: boolean
 }
 
-const getConnectionProvider = async (wallet: SolanaProgramWallet, network: string) => {
+const getConnectionProvider = (wallet: SolanaProgramWallet, network: string) => {
     if (!wallet) return null
     const context = useContext()
     // TODO: add advanced configuration for the connection/provider (or maybe add them as an argument?).
@@ -28,7 +28,7 @@ const getConnectionProvider = async (wallet: SolanaProgramWallet, network: strin
     const provider = new SolanaProgramProvider(
         connection,
         wallet,
-        {commitment: commitment}
+        { commitment: commitment }
     );
     return provider;
 };
@@ -38,35 +38,39 @@ export const useSigner = () => {
     const solanaInfo = useWalletSolana();
     const solanaConnection = useConnectionSolana()
 
-    const state = React.useMemo(async () => {
+    const state = React.useMemo(() => {
         if (wamgiSignerState && wamgiSignerState.data)
             return {
                 data: {
-                    ...wamgiSignerState.data
+                    provider: wamgiSignerState.data,
+                    getAddress: wamgiSignerState.data.getAddress
                 },
                 error: wamgiSignerState.error,
                 loading: wamgiSignerState.loading
-            }
+            } as State
 
         if (solanaInfo.connected)
             return {
                 data: {
-                    provider: await getConnectionProvider(solanaInfo as SolanaProgramWallet, solanaConnection.connection.rpcEndpoint),
+                    provider: getConnectionProvider(solanaInfo as SolanaProgramWallet, solanaConnection.connection.rpcEndpoint),
                     getAddress: () => solanaInfo.wallet?.adapter.publicKey
                 },
                 loading: solanaInfo.connecting || solanaInfo.disconnecting
             } as State
 
-        return null;
+        return {
+            data: undefined,
+            loading: false
+        } as State
     }, [wamgiSignerState, solanaInfo, solanaConnection.connection.rpcEndpoint])
 
     const getSigner = React.useCallback(() => {
         if (wamgiSignerState)
-            return getSignerWagmi;
+            getSignerWagmi();
 
         // TODO: change this to get the Solana signer (if it exists). This 
         // was not implemented yet because it's not needed in grants frontend.
-        return () => { }
+        return
     }, [wamgiSignerState, getSignerWagmi, solanaInfo])
 
     return [state, getSigner] as const
